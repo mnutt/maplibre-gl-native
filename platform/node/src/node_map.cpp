@@ -119,8 +119,9 @@ ParseError)JS").ToLocalChecked()).ToLocalChecked();
     Nan::SetPrototypeMethod(tpl, "dumpDebugLogs", DumpDebugLogs);
     Nan::SetPrototypeMethod(tpl, "queryRenderedFeatures", QueryRenderedFeatures);
 
-    constructor.Reset(tpl->GetFunction());
-    Nan::Set(target, Nan::New("Map").ToLocalChecked(), tpl->GetFunction());
+    v8::Local<v8::Context> context = target->CreationContext();
+    constructor.Reset(tpl->GetFunction(context).ToLocalChecked());
+    Nan::Set(target, Nan::New("Map").ToLocalChecked(), tpl->GetFunction(context).ToLocalChecked());
 }
 
 /**
@@ -227,6 +228,8 @@ void NodeMap::New(const Nan::FunctionCallbackInfo<v8::Value>& info) {
  * map.load(fs.readFileSync('./test/fixtures/style.json', 'utf8'));
  */
 void NodeMap::Load(const Nan::FunctionCallbackInfo<v8::Value>& info) {
+    v8::Local<v8::Context> context = info.GetIsolate()->GetCurrentContext();
+
     auto nodeMap = Nan::ObjectWrap::Unwrap<NodeMap>(info.Holder());
     if (!nodeMap->map) return Nan::ThrowError(releasedMessage());
 
@@ -242,7 +245,7 @@ void NodeMap::Load(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 
     if (info[0]->IsObject()) {
         Nan::JSON JSON;
-        style = *Nan::Utf8String(JSON.Stringify(info[0]->ToObject()).ToLocalChecked());
+        style = *Nan::Utf8String(JSON.Stringify(info[0]->ToObject(context).ToLocalChecked()).ToLocalChecked());
     } else if (info[0]->IsString()) {
         style = *Nan::Utf8String(info[0]);
     } else {
@@ -266,7 +269,7 @@ void NodeMap::Load(const Nan::FunctionCallbackInfo<v8::Value>& info) {
             if (!Nan::Get(options, Nan::New("defaultStyleCamera").ToLocalChecked()).ToLocalChecked()->IsBoolean()) {
                 return Nan::ThrowError("Options object 'defaultStyleCamera' property must be a boolean");
             }
-            if (Nan::Get(options, Nan::New("cameraMutated").ToLocalChecked()).ToLocalChecked()->BooleanValue()) {
+            if (Nan::To<bool>(Nan::Get(options, Nan::New("cameraMutated").ToLocalChecked()).ToLocalChecked()).FromJust()) {
                 nodeMap->map->jumpTo(nodeMap->map->getStyle().getDefaultCamera());
             }
         }
@@ -298,15 +301,15 @@ NodeMap::RenderOptions NodeMap::ParseOptions(v8::Local<v8::Object> obj) {
     NodeMap::RenderOptions options;
 
     if (Nan::Has(obj, Nan::New("zoom").ToLocalChecked()).FromJust()) {
-        options.zoom = Nan::Get(obj, Nan::New("zoom").ToLocalChecked()).ToLocalChecked()->NumberValue();
+        options.zoom = Nan::To<double>(Nan::Get(obj, Nan::New("zoom").ToLocalChecked()).ToLocalChecked()).FromJust();
     }
 
     if (Nan::Has(obj, Nan::New("bearing").ToLocalChecked()).FromJust()) {
-        options.bearing = Nan::Get(obj, Nan::New("bearing").ToLocalChecked()).ToLocalChecked()->NumberValue();
+        options.bearing = Nan::To<double>(Nan::Get(obj, Nan::New("bearing").ToLocalChecked()).ToLocalChecked()).FromJust();
     }
 
     if (Nan::Has(obj, Nan::New("pitch").ToLocalChecked()).FromJust()) {
-        options.pitch = Nan::Get(obj, Nan::New("pitch").ToLocalChecked()).ToLocalChecked()->NumberValue();
+        options.pitch = Nan::To<double>(Nan::Get(obj, Nan::New("pitch").ToLocalChecked()).ToLocalChecked()).FromJust();
     }
 
     if (Nan::Has(obj, Nan::New("light").ToLocalChecked()).FromJust()) {
@@ -320,15 +323,15 @@ NodeMap::RenderOptions NodeMap::ParseOptions(v8::Local<v8::Object> obj) {
     }
 
     if (Nan::Has(obj, Nan::New("axonometric").ToLocalChecked()).FromJust()) {
-        options.axonometric = Nan::Get(obj, Nan::New("axonometric").ToLocalChecked()).ToLocalChecked()->BooleanValue();
+        options.axonometric = Nan::To<bool>(Nan::Get(obj, Nan::New("axonometric").ToLocalChecked()).ToLocalChecked()).FromJust();
     }
 
     if (Nan::Has(obj, Nan::New("skew").ToLocalChecked()).FromJust()) {
         auto skewObj = Nan::Get(obj, Nan::New("skew").ToLocalChecked()).ToLocalChecked();
         if (skewObj->IsArray()) {
             auto skew = skewObj.As<v8::Array>();
-            if (skew->Length() > 0) { options.xSkew = Nan::Get(skew, 0).ToLocalChecked()->NumberValue(); }
-            if (skew->Length() > 1) { options.ySkew = Nan::Get(skew, 1).ToLocalChecked()->NumberValue(); }
+            if (skew->Length() > 0) { options.xSkew = Nan::To<double>(Nan::Get(skew, 0).ToLocalChecked()).FromJust(); }
+            if (skew->Length() > 1) { options.ySkew = Nan::To<double>(Nan::Get(skew, 1).ToLocalChecked()).FromJust(); }
         }
     }
 
@@ -336,17 +339,17 @@ NodeMap::RenderOptions NodeMap::ParseOptions(v8::Local<v8::Object> obj) {
         auto centerObj = Nan::Get(obj, Nan::New("center").ToLocalChecked()).ToLocalChecked();
         if (centerObj->IsArray()) {
             auto center = centerObj.As<v8::Array>();
-            if (center->Length() > 0) { options.longitude = Nan::Get(center, 0).ToLocalChecked()->NumberValue(); }
-            if (center->Length() > 1) { options.latitude = Nan::Get(center, 1).ToLocalChecked()->NumberValue(); }
+            if (center->Length() > 0) { options.longitude = Nan::To<double>(Nan::Get(center, 0).ToLocalChecked()).FromJust(); }
+            if (center->Length() > 1) { options.latitude = Nan::To<double>(Nan::Get(center, 1).ToLocalChecked()).FromJust(); }
         }
     }
 
     if (Nan::Has(obj, Nan::New("width").ToLocalChecked()).FromJust()) {
-        options.size.width = Nan::Get(obj, Nan::New("width").ToLocalChecked()).ToLocalChecked()->IntegerValue();
+        options.size.width = Nan::To<int32_t>(Nan::Get(obj, Nan::New("width").ToLocalChecked()).ToLocalChecked()).FromJust();
     }
 
     if (Nan::Has(obj, Nan::New("height").ToLocalChecked()).FromJust()) {
-        options.size.height = Nan::Get(obj, Nan::New("height").ToLocalChecked()).ToLocalChecked()->IntegerValue();
+        options.size.height = Nan::To<int32_t>(Nan::Get(obj, Nan::New("height").ToLocalChecked()).ToLocalChecked()).FromJust();
     }
 
     if (Nan::Has(obj, Nan::New("classes").ToLocalChecked()).FromJust()) {
@@ -361,27 +364,27 @@ NodeMap::RenderOptions NodeMap::ParseOptions(v8::Local<v8::Object> obj) {
     if (Nan::Has(obj, Nan::New("debug").ToLocalChecked()).FromJust()) {
         auto debug = Nan::To<v8::Object>(Nan::Get(obj, Nan::New("debug").ToLocalChecked()).ToLocalChecked()).ToLocalChecked();
         if (Nan::Has(debug, Nan::New("tileBorders").ToLocalChecked()).FromJust()) {
-            if (Nan::Get(debug, Nan::New("tileBorders").ToLocalChecked()).ToLocalChecked()->BooleanValue()) {
+            if (Nan::To<bool>(Nan::Get(debug, Nan::New("tileBorders").ToLocalChecked()).ToLocalChecked()).FromJust()) {
                 options.debugOptions = options.debugOptions | mbgl::MapDebugOptions::TileBorders;
             }
         }
         if (Nan::Has(debug, Nan::New("parseStatus").ToLocalChecked()).FromJust()) {
-            if (Nan::Get(debug, Nan::New("parseStatus").ToLocalChecked()).ToLocalChecked()->BooleanValue()) {
+            if (Nan::To<bool>(Nan::Get(debug, Nan::New("parseStatus").ToLocalChecked()).ToLocalChecked()).FromJust()) {
                 options.debugOptions = options.debugOptions | mbgl::MapDebugOptions::ParseStatus;
             }
         }
         if (Nan::Has(debug, Nan::New("timestamps").ToLocalChecked()).FromJust()) {
-            if (Nan::Get(debug, Nan::New("timestamps").ToLocalChecked()).ToLocalChecked()->BooleanValue()) {
+            if (Nan::To<bool>(Nan::Get(debug, Nan::New("timestamps").ToLocalChecked()).ToLocalChecked()).FromJust()) {
                 options.debugOptions = options.debugOptions | mbgl::MapDebugOptions::Timestamps;
             }
         }
         if (Nan::Has(debug, Nan::New("collision").ToLocalChecked()).FromJust()) {
-            if (Nan::Get(debug, Nan::New("collision").ToLocalChecked()).ToLocalChecked()->BooleanValue()) {
+            if (Nan::To<bool>(Nan::Get(debug, Nan::New("collision").ToLocalChecked()).ToLocalChecked()).FromJust()) {
                 options.debugOptions = options.debugOptions | mbgl::MapDebugOptions::Collision;
             }
         }
         if (Nan::Has(debug, Nan::New("overdraw").ToLocalChecked()).FromJust()) {
-            if (Nan::Get(debug, Nan::New("overdraw").ToLocalChecked()).ToLocalChecked()->BooleanValue()) {
+            if (Nan::To<bool>(Nan::Get(debug, Nan::New("overdraw").ToLocalChecked()).ToLocalChecked()).FromJust()) {
                 options.debugOptions = mbgl::MapDebugOptions::Overdraw;
             }
         }
@@ -743,6 +746,8 @@ void NodeMap::AddImage(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     using namespace mbgl::style;
     using namespace mbgl::style::conversion;
 
+    v8::Local<v8::Context> context = info.GetIsolate()->GetCurrentContext();
+
     auto nodeMap = Nan::ObjectWrap::Unwrap<NodeMap>(info.Holder());
     if (!nodeMap->map) return Nan::ThrowError(releasedMessage());
 
@@ -776,20 +781,20 @@ void NodeMap::AddImage(const Nan::FunctionCallbackInfo<v8::Value>& info) {
         return Nan::ThrowTypeError("pixelRatio parameter required");
     }
 
-    uint32_t imageHeight = Nan::Get(optionObject, Nan::New("height").ToLocalChecked()).ToLocalChecked()->Uint32Value();
-    uint32_t imageWidth = Nan::Get(optionObject, Nan::New("width").ToLocalChecked()).ToLocalChecked()->Uint32Value();
+    uint32_t imageHeight = Nan::To<uint32_t>(Nan::Get(optionObject, Nan::New("height").ToLocalChecked()).ToLocalChecked()).FromJust();
+    uint32_t imageWidth = Nan::To<uint32_t>(Nan::Get(optionObject, Nan::New("width").ToLocalChecked()).ToLocalChecked()).FromJust();
 
     if (imageWidth > 1024 || imageHeight > 1024) {
         return Nan::ThrowTypeError("Max height and width is 1024");
     }
 
     bool sdf = false;
-    if (Nan::Get(optionObject, Nan::New("sdf").ToLocalChecked()).ToLocalChecked()->IsBoolean()) {
-        sdf = Nan::Get(optionObject, Nan::New("sdf").ToLocalChecked()).ToLocalChecked()->BooleanValue();
+    if (Nan::To<bool>(Nan::Get(optionObject, Nan::New("sdf").ToLocalChecked()).ToLocalChecked()).FromJust()) {
+        sdf = Nan::To<bool>(Nan::Get(optionObject, Nan::New("sdf").ToLocalChecked()).ToLocalChecked()).FromJust();
     }
 
-    float pixelRatio = Nan::Get(optionObject, Nan::New("pixelRatio").ToLocalChecked()).ToLocalChecked()->NumberValue();
-    auto imageBuffer = Nan::To<v8::Object>(info[1]).ToLocalChecked()->ToObject();
+    float pixelRatio = Nan::To<double>(Nan::Get(optionObject, Nan::New("pixelRatio").ToLocalChecked()).ToLocalChecked()).FromJust();
+    auto imageBuffer = Nan::To<v8::Object>(info[1]).ToLocalChecked()->ToObject(context).ToLocalChecked();
     
     char * imageDataBuffer = node::Buffer::Data(imageBuffer);
     size_t imageLength = node::Buffer::Length(imageBuffer);
@@ -847,8 +852,8 @@ void NodeMap::SetLayerZoomRange(const Nan::FunctionCallbackInfo<v8::Value>& info
         return Nan::ThrowTypeError("layer not found");
     }
 
-    layer->setMinZoom(info[1]->NumberValue());
-    layer->setMaxZoom(info[2]->NumberValue());
+    layer->setMinZoom(Nan::To<double>(info[1]).FromJust());
+    layer->setMaxZoom(Nan::To<double>(info[2]).FromJust());
 }
 
 void NodeMap::SetLayerProperty(const Nan::FunctionCallbackInfo<v8::Value>& info) {
@@ -929,8 +934,8 @@ void NodeMap::SetCenter(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     auto center = info[0].As<v8::Array>();
     double latitude = 0;
     double longitude = 0;
-    if (center->Length() > 0) { longitude = Nan::Get(center, 0).ToLocalChecked()->NumberValue(); }
-    if (center->Length() > 1) { latitude = Nan::Get(center, 1).ToLocalChecked()->NumberValue(); }
+    if (center->Length() > 0) { longitude = Nan::To<double>(Nan::Get(center, 0).ToLocalChecked()).FromJust(); }
+    if (center->Length() > 1) { latitude = Nan::To<double>(Nan::Get(center, 1).ToLocalChecked()).FromJust(); }
 
     try {
         nodeMap->map->jumpTo(mbgl::CameraOptions().withCenter(mbgl::LatLng { latitude, longitude }));
@@ -950,7 +955,7 @@ void NodeMap::SetZoom(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     }
 
     try {
-        nodeMap->map->jumpTo(mbgl::CameraOptions().withZoom(info[0]->NumberValue()));
+        nodeMap->map->jumpTo(mbgl::CameraOptions().withZoom(Nan::To<double>(info[0]).FromJust()));
     } catch (const std::exception &ex) {
         return Nan::ThrowError(ex.what());
     }
@@ -967,7 +972,7 @@ void NodeMap::SetBearing(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     }
 
     try {
-        nodeMap->map->jumpTo(mbgl::CameraOptions().withBearing(info[0]->NumberValue()));
+        nodeMap->map->jumpTo(mbgl::CameraOptions().withBearing(Nan::To<double>(info[0]).FromJust()));
     } catch (const std::exception &ex) {
         return Nan::ThrowError(ex.what());
     }
@@ -984,7 +989,7 @@ void NodeMap::SetPitch(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     }
 
     try {
-        nodeMap->map->jumpTo(mbgl::CameraOptions().withPitch(info[0]->NumberValue()));
+        nodeMap->map->jumpTo(mbgl::CameraOptions().withPitch(Nan::To<double>(info[0]).FromJust()));
     } catch (const std::exception &ex) {
         return Nan::ThrowError(ex.what());
     }
@@ -1027,7 +1032,7 @@ void NodeMap::SetAxonometric(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 
     try {
         nodeMap->map->setProjectionMode(mbgl::ProjectionMode()
-                                        .withAxonometric(info[0]->BooleanValue()));
+                                        .withAxonometric(Nan::To<bool>(info[0]).FromJust()));
     } catch (const std::exception &ex) {
         return Nan::ThrowError(ex.what());
     }
@@ -1045,7 +1050,7 @@ void NodeMap::SetXSkew(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 
     try {
         nodeMap->map->setProjectionMode(mbgl::ProjectionMode()
-                                        .withXSkew(info[0]->NumberValue()));
+                                        .withXSkew(Nan::To<double>(info[0]).FromJust()));
     } catch (const std::exception &ex) {
         return Nan::ThrowError(ex.what());
     }
@@ -1063,7 +1068,7 @@ void NodeMap::SetYSkew(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 
     try {
         nodeMap->map->setProjectionMode(mbgl::ProjectionMode()
-                                        .withYSkew(info[0]->NumberValue()));
+                                        .withYSkew(Nan::To<double>(info[0]).FromJust()));
     } catch (const std::exception &ex) {
         return Nan::ThrowError(ex.what());
     }
@@ -1363,24 +1368,24 @@ void NodeMap::QueryRenderedFeatures(const Nan::FunctionCallbackInfo<v8::Value>& 
 
             optional = nodeMap->frontend->getRenderer()->queryRenderedFeatures(mbgl::ScreenBox {
                 {
-                    Nan::Get(pos0, 0).ToLocalChecked()->NumberValue(),
-                    Nan::Get(pos0, 1).ToLocalChecked()->NumberValue()
+                    Nan::To<double>(Nan::Get(pos0, 0).ToLocalChecked()).FromJust(),
+                    Nan::To<double>(Nan::Get(pos0, 1).ToLocalChecked()).FromJust()
                 }, {
-                    Nan::Get(pos1, 0).ToLocalChecked()->NumberValue(),
-                    Nan::Get(pos1, 1).ToLocalChecked()->NumberValue()
+                    Nan::To<double>(Nan::Get(pos1, 0).ToLocalChecked()).FromJust(),
+                    Nan::To<double>(Nan::Get(pos1, 1).ToLocalChecked()).FromJust()
                 }
             },  queryOptions);
 
         } else {
             optional = nodeMap->frontend->getRenderer()->queryRenderedFeatures(mbgl::ScreenCoordinate {
-                Nan::Get(posOrBox, 0).ToLocalChecked()->NumberValue(),
-                Nan::Get(posOrBox, 1).ToLocalChecked()->NumberValue()
+                Nan::To<double>(Nan::Get(posOrBox, 0).ToLocalChecked()).FromJust(),
+                Nan::To<double>(Nan::Get(posOrBox, 1).ToLocalChecked()).FromJust()
             }, queryOptions);
         }
 
         auto array = Nan::New<v8::Array>();
         for (std::size_t i = 0; i < optional.size(); i++) {
-            array->Set(i, toJS(optional[i]));
+            Nan::Set(array, i, toJS(optional[i]));
         }
         info.GetReturnValue().Set(array);
     } catch (const std::exception &ex) {
@@ -1392,15 +1397,14 @@ NodeMap::NodeMap(v8::Local<v8::Object> options)
     : pixelRatio([&] {
           Nan::HandleScope scope;
           return Nan::Has(options, Nan::New("ratio").ToLocalChecked()).FromJust()
-                     ? Nan::Get(options, Nan::New("ratio").ToLocalChecked())
-                           .ToLocalChecked()
-                           ->NumberValue()
+                     ? Nan::To<double>(Nan::Get(options, Nan::New("ratio").ToLocalChecked())
+                           .ToLocalChecked()).FromJust()
                      : 1.0;
       }())
     , mode([&] {
             Nan::HandleScope scope;
             if (Nan::Has(options, Nan::New("mode").ToLocalChecked()).FromJust() &&
-                std::string(*v8::String::Utf8Value(Nan::Get(options, Nan::New("mode").ToLocalChecked()).ToLocalChecked()->ToString())) == "tile") {
+                std::string(*v8::String::Utf8Value(v8::Isolate::GetCurrent(), Nan::Get(options, Nan::New("mode").ToLocalChecked()).ToLocalChecked())) == "tile") {
                 return mbgl::MapMode::Tile;
             } else {
                 return mbgl::MapMode::Static;
@@ -1409,9 +1413,8 @@ NodeMap::NodeMap(v8::Local<v8::Object> options)
     , crossSourceCollisions([&] {
         Nan::HandleScope scope;
         return Nan::Has(options, Nan::New("crossSourceCollisions").ToLocalChecked()).FromJust()
-            ? Nan::Get(options, Nan::New("crossSourceCollisions").ToLocalChecked())
-                .ToLocalChecked()
-                ->BooleanValue()
+            ? Nan::To<bool>(Nan::Get(options, Nan::New("crossSourceCollisions").ToLocalChecked())
+                .ToLocalChecked()).FromJust()
             : true;
     }())
     , mapObserver(NodeMapObserver())
