@@ -131,6 +131,13 @@ jobs:
         run: |
           npm pack --dry-run
 
+      - name: Release
+        env:
+          NODE_PRE_GYP_GITHUB_TOKEN: ${{ secrets.NODE_PRE_GYP_GITHUB_TOKEN }}
+        run: |
+          node-pre-gyp package
+          node-pre-gyp-github publish
+
       # Uncomment to start publishing the package
       # @TODO: Figure out the binary distribution method.
       # - name: Publish package

@@ -15,13 +15,14 @@
   "main": "platform/node/index.js",
   "repository": {
     "type": "git",
-    "url": "git://github.com/maplibre/maplibre-gl-native.git"
+    "url": "git://github.com/mnutt/maplibre-gl-native.git"
   },
   "license": "BSD-2-Clause",
   "dependencies": {
     "@mapbox/cmake-node-module": "^1.2.0",
+    "@mapbox/node-pre-gyp": "^1.0.9",
     "minimatch": "^3.0.4",
-    "node-pre-gyp": "^0.10.2",
+    "node-pre-gyp-github": "1.4.4",
     "npm-run-all": "^4.0.2"
   },
   "devDependencies": {
@@ -66,7 +67,7 @@
   "binary": {
     "module_name": "mbgl",
     "module_path": "./lib/{node_abi}",
-    "host": "https://mapbox-node-binary.s3.amazonaws.com",
+    "host": "https://github.com/mnutt/maplibre-gl-native/releases/download/",
     "remote_path": "./{name}/v{version}",
     "package_name": "{node_abi}-{platform}-{arch}-{configuration}.tar.gz"
   }
