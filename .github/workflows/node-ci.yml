@@ -3,15 +3,8 @@ name: node-ci
 on:
   workflow_dispatch:
   push:
-    tags-ignore:
-      - '**'
-    paths-ignore:
-      - "platform/android/**"
-      - "platform/ios/**"
-      - "platform/qt/**"
-      - ".gitignore"
     branches:
-      - main
+      - '**'
   pull_request:
     branches:
       - main
@@ -135,8 +128,8 @@ jobs:
         env:
           NODE_PRE_GYP_GITHUB_TOKEN: ${{ secrets.NODE_PRE_GYP_GITHUB_TOKEN }}
         run: |
-          node-pre-gyp package
-          node-pre-gyp-github publish
+          npm run package
+          npm run release
 
       # Uncomment to start publishing the package
       # @TODO: Figure out the binary distribution method.

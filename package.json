@@ -15,7 +15,7 @@
   "main": "platform/node/index.js",
   "repository": {
     "type": "git",
-    "url": "git://github.com/mnutt/maplibre-gl-native.git"
+    "url": "https://github.com/mnutt/maplibre-gl-native.git"
   },
   "license": "BSD-2-Clause",
   "dependencies": {
@@ -61,14 +61,16 @@
     "test-memory": "node --expose-gc platform/node/test/memory.test.js",
     "test-expressions": "node -r esm platform/node/test/expression.test.js",
     "test-render": "node -r esm platform/node/test/render.test.js",
-    "test-query": "node -r esm platform/node/test/query.test.js"
+    "test-query": "node -r esm platform/node/test/query.test.js",
+    "package": "node-pre-gyp package",
+    "release": "node-pre-gyp-github publish"
   },
   "gypfile": true,
   "binary": {
     "module_name": "mbgl",
     "module_path": "./lib/{node_abi}",
     "host": "https://github.com/mnutt/maplibre-gl-native/releases/download/",
-    "remote_path": "./{name}/v{version}",
+    "remote_path": "./@maplibre/maplibre-gl-native/v{version}",
     "package_name": "{node_abi}-{platform}-{arch}-{configuration}.tar.gz"
   }
 }
