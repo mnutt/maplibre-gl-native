@@ -1,6 +1,6 @@
 {
-  "name": "@maplibre/maplibre-gl-native",
-  "version": "5.0.0",
+  "name": "mnutt-maplibre-gl-native",
+  "version": "1.0.0",
   "description": "Renders map tiles with Maplibre GL",
   "keywords": [
     "maplibre",
@@ -53,7 +53,7 @@
     "xcode": "^1.0.0"
   },
   "engines": {
-    "node": ">=6"
+    "node": "^14 || ^16 || ^18"
   },
   "scripts": {
     "install": "node-pre-gyp install --fallback-to-build=false",
@@ -61,16 +61,17 @@
     "test-memory": "node --expose-gc platform/node/test/memory.test.js",
     "test-expressions": "node -r esm platform/node/test/expression.test.js",
     "test-render": "node -r esm platform/node/test/render.test.js",
-    "test-query": "node -r esm platform/node/test/query.test.js",
-    "package": "node-pre-gyp package",
-    "release": "node-pre-gyp-github publish"
+    "test-query": "node -r esm platform/node/test/query.test.js"
   },
   "gypfile": true,
   "binary": {
     "module_name": "mbgl",
-    "module_path": "./build/platform/node/lib/",
+    "module_path": "./lib/{node_abi}",
     "host": "https://github.com/mnutt/maplibre-gl-native/releases/download/",
-    "remote_path": "./@maplibre/maplibre-gl-native/v{version}",
+    "remote_path": "./mnutt-maplibre-gl-native/v{version}",
     "package_name": "{node_abi}-{platform}-{arch}-{configuration}.tar.gz"
+  },
+  "volta": {
+    "node": "18.1.0"
   }
 }
