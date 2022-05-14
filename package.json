@@ -68,7 +68,7 @@
   "gypfile": true,
   "binary": {
     "module_name": "mbgl",
-    "module_path": "./lib/{node_abi}",
+    "module_path": "./build/platform/node/lib/",
     "host": "https://github.com/mnutt/maplibre-gl-native/releases/download/",
     "remote_path": "./@maplibre/maplibre-gl-native/v{version}",
     "package_name": "{node_abi}-{platform}-{arch}-{configuration}.tar.gz"
