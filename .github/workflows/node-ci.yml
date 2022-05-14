@@ -22,6 +22,9 @@ jobs:
           - macos-10.15
           - ubuntu-20.04
           - ubuntu-18.04
+        include:
+          - os: macos-10.15
+            arch: arm64
     runs-on: ${{ matrix.os }}
     env:
       BUILDTYPE: ${{github.ref == 'refs/heads/main' && 'Release' || 'Debug'}}
@@ -95,7 +98,14 @@ jobs:
           ccache --show-stats --set-config cache_dir=~/.ccache
 
       - name: CMake
-        if: runner.os == 'macOS'
+        if: runner.os == 'MacOS' && matrix.arch == 'arm64'
+        run: |
+          cmake . -B build -G Ninja -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_BUILD_TYPE=${{ env.BUILDTYPE }} -DMBGL_WITH_COVERAGE=ON
+          sed -i -e 's/$(ARCHS_STANDARD)/arm64/g' build/build.ninja
+          sed -i -e 's/-arch arm64e/-arch arm64/g' build/build.ninja
+
+      - name: CMake
+        if: runner.os == 'MacOS' && matrix.arch != 'arm64'
         run: |
           cmake . -B build -G Ninja -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_BUILD_TYPE=${{ env.BUILDTYPE }} -DMBGL_WITH_COVERAGE=ON
           sed -i -e 's/$(ARCHS_STANDARD)/x86_64/g' build/build.ninja
@@ -125,6 +135,7 @@ jobs:
           npm pack --dry-run
 
       - name: Release
+        if: matrix.os != 'ubuntu-20.04' && matrix.os != 'macos-11.0'
         env:
           NODE_PRE_GYP_GITHUB_TOKEN: ${{ secrets.NODE_PRE_GYP_GITHUB_TOKEN }}
         run: |
