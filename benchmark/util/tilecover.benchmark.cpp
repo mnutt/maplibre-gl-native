@@ -11,7 +11,7 @@ static const LatLngBounds sanFrancisco =
     LatLngBounds::hull({ 37.6609, -122.5744 }, { 37.8271, -122.3204 });
 
 static void TileCountBounds(benchmark::State& state) {
-    std::size_t length = 0;
+    __attribute__((unused)) std::size_t length = 0;
     while (state.KeepRunning()) {
         auto count = util::tileCount(sanFrancisco, 10);
         length += count;
@@ -24,7 +24,7 @@ static void TileCoverPitchedViewport(benchmark::State& state) {
     // slightly offset center so that tile order is better defined
     transform.jumpTo(CameraOptions().withCenter(LatLng { 0.1, -0.1 }).withZoom(8.0).withBearing(5.0).withPitch(40.0));
 
-    std::size_t length = 0;
+    __attribute__((unused)) std::size_t length = 0;
     while (state.KeepRunning()) {
         auto tiles = util::tileCover(transform.getState(), 8);
         length += tiles.size();
@@ -32,7 +32,7 @@ static void TileCoverPitchedViewport(benchmark::State& state) {
 }
 
 static void TileCoverBounds(benchmark::State& state) {
-    std::size_t length = 0;
+    __attribute__((unused)) std::size_t length = 0;
     while (state.KeepRunning()) {
         auto tiles = util::tileCover(sanFrancisco, 8);
         length += tiles.size();
@@ -68,7 +68,7 @@ static const auto geomPolygon = Polygon<double>{
 };
 
 static void TileCoverPolygon(benchmark::State& state) {
-    std::size_t length = 0;
+    __attribute__((unused)) std::size_t length = 0;
 
     while (state.KeepRunning()) {
         auto tiles = util::tileCover(geomPolygon, 8);
@@ -77,7 +77,7 @@ static void TileCoverPolygon(benchmark::State& state) {
 }
 
 static void TileCountPolygon(benchmark::State& state) {
-    std::size_t length = 0;
+    __attribute__((unused)) std::size_t length = 0;
 
     while (state.KeepRunning()) {
         auto tiles = util::tileCount(geomPolygon, 16);
