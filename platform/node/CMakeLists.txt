@@ -10,11 +10,7 @@ add_node_module(
     mbgl-node
     INSTALL_PATH ${PROJECT_SOURCE_DIR}/lib/{node_abi}/mbgl.node
     NAN_VERSION 2.14.2
-    EXCLUDE_NODE_ABIS
-        46
-        47
-        48
-        51
+    MINIMUM_NODE_ABI 83
 )
 find_package(PkgConfig REQUIRED)
 pkg_search_module(LIBUV libuv REQUIRED)
