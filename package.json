@@ -68,7 +68,7 @@
     "module_name": "mbgl",
     "module_path": "./lib/{node_abi}",
     "host": "https://github.com/mnutt/maplibre-gl-native/releases/download/",
-    "remote_path": "./mnutt-maplibre-gl-native/v{version}",
+    "remote_path": "v{version}",
     "package_name": "{node_abi}-{platform}-{arch}-{configuration}.tar.gz"
   },
   "volta": {
