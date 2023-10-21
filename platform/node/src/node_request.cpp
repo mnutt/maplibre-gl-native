@@ -52,8 +52,11 @@ void NodeRequest::New(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     Nan::Set(info.This(), Nan::New("url").ToLocalChecked(), info[3]);
     Nan::Set(info.This(), Nan::New("kind").ToLocalChecked(), info[4]);
     v8::Local<v8::Value> argv[] = {info.This()};
-    request->asyncResource->runInAsyncScope(
-        Nan::To<v8::Object>(target->handle()->GetInternalField(1)), "request", 1, argv);
+
+    v8::Local<v8::Value> internalField = v8::Local<v8::Value>::Cast(target->handle()->GetInternalField(1));
+    v8::Local<v8::Object> obj = Nan::To<v8::Object>(internalField).ToLocalChecked();
+
+    request->asyncResource->runInAsyncScope(obj, "request", 1, argv);
     info.GetReturnValue().Set(info.This());
 }
 
